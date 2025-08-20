@@ -7,18 +7,19 @@ import yaml
 
 app = FastAPI()
 
+# Allow frontend hosted on GitHub Pages
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://akashverma-ctrl.github.io"],  # 👈 frontend URL
+    allow_origins=["https://akashverma-ctrl.github.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load secrets from environment variables
+# GitHub repo details
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO_OWNER = "akashverma-ctrl"
-REPO_NAME = "receiptify-data"   # <-- Better to keep master_data in separate repo
+REPO_NAME = "receiptify-data"   # separate repo for master_data
 FILE_PATH = "registrations.yaml"
 
 URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/{FILE_PATH}"
@@ -31,13 +32,23 @@ HEADERS = {
 async def health_check():
     return {"status": "ok"}
 
+
 @app.post("/register/")
 async def register(
     student_name: str = Form(...),
+    branch: str = Form(...),
+    year: str = Form(...),
+    college: str = Form(...),
+    mobile: str = Form(...),
     email: str = Form(...),
+    course: str = Form(...),
+    pay_for: str = Form(...),
+    amount: str = Form(...),
+    payment_mode: str = Form(...),
     transaction_id: str = Form(...),
+    payment_date: str = Form(...),
 ):
-    # Get file from GitHub
+    # Get existing file from GitHub
     response = requests.get(URL, headers=HEADERS)
     if response.status_code == 200:
         file_info = response.json()
@@ -53,8 +64,21 @@ async def register(
         if entry.get("transaction_id") == transaction_id:
             return {"error": True, "message": "Transaction already exists"}
 
-    # Add new entry
-    new_entry = {"student_name": student_name, "email": email, "transaction_id": transaction_id}
+    # Add new entry with all form fields
+    new_entry = {
+        "student_name": student_name,
+        "branch": branch,
+        "year": year,
+        "college": college,
+        "mobile": mobile,
+        "email": email,
+        "course": course,
+        "pay_for": pay_for,
+        "amount": amount,
+        "payment_mode": payment_mode,
+        "transaction_id": transaction_id,
+        "payment_date": payment_date,
+    }
     data.append(new_entry)
 
     # Commit back to GitHub
