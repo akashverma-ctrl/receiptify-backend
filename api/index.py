@@ -7,10 +7,9 @@ import yaml
 
 app = FastAPI()
 
-# Enable CORS for frontend calls
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to your frontend URL for security
+    allow_origins=["https://akashverma-ctrl.github.io"],  # 👈 frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
